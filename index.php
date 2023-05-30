@@ -249,6 +249,7 @@
       <div class="container-fluid">
         <!-- Small boxes (Stat box) -->
         <div class="row">
+        
         <?php
             include_once('conn.php');
             $stmt = $conn->query("SELECT * from locker");
@@ -257,22 +258,56 @@
             if($stmt->rowCount() > 0){
                 foreach ($lockers as $locker) {
         ?>
-          <div class="col-lg-2 col-6">
-            <!-- small box -->
-            <div class="small-box bg-gradient-<?php if($locker['status'] == 0){ echo 'success';} else echo 'danger' ?>">
-              <div class="inner">
-                <h3><?php echo $locker['id']; if($locker['id'] == null)echo "&nbsp;&nbsp;&nbsp;";?></h3>
-                
-                <p><?php echo $locker['userID']; if($locker['userID'] == null)echo "&nbsp;&nbsp;&nbsp;"; ?></p>
-                <!-- <p><?php echo $locker['userID'];?></p> -->
-              </div>
-              <div class="icon">
-                <i class="fas fa-<?php if($locker['status'] == 0){echo 'unlock';} else echo 'lock'?>"></i>
-              </div>
-              <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
+          
           <!-- ./col -->
+        
+          <div class="col-md-2">
+            <div class="card bg-gradient-<?php if($locker['status'] == 0){ echo 'success';} else echo 'danger' ?> collapsed-card">
+              <div class="card-header">
+                <div>
+                </div>
+                  <div style="display: flex; align-items: center;">
+                    <h1 class="card-title" style="width: 50%%; font-size: 40px; font-weight: bold;"><?php echo $locker['id']; if($locker['id'] == null)echo "&nbsp;&nbsp;&nbsp;";?></h1>
+                    <div class="icon" style="width: 100%; display: flex; justify-content: flex-end;"><i class="fas fa-<?php if($locker['status'] == 0){echo 'unlock';} else echo 'lock'?>"></i>
+                    </div>
+                  </div>
+                
+               
+                <p><?php echo $locker['userID']; if($locker['userID'] == null)echo "&nbsp;&nbsp;&nbsp;"; ?></p>
+
+                <div class="card-tools">
+                  <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i>
+                  </button>
+                </div>
+                <!-- /.card-tools -->
+                
+              </div>
+              <!-- /.card-header -->
+              <div class="card-body bg-light">
+                <?php
+                
+                  $userID = $locker['userID']; 
+                  $sql = "SELECT * from users WHERE id='$userID'";
+                  $userStmt = $conn->query($sql);
+                  $user = $userStmt->fetch();
+                  
+                  
+                  // $conn->prepare($userStmt);
+                  // $userStmt->execute();
+
+                  // $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+                  // if($userStmt->rowCount() > 0){
+                ?>
+                <div>
+                  <p>Name: <?php echo $user['firstname']; echo "&nbsp;"; echo $user['lastname']?></p>
+                </div>
+              </div>
+              <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+          </div>
+          <!-- /.col -->
           <?php
          }
         }
@@ -285,11 +320,43 @@
           <!-- right col -->
         </div>
         <!-- /.row (main row) -->
+
+        
       </div><!-- /.container-fluid -->
+
+     
     </section>
     <!-- /.content -->
   </div>
   <!-- /.content-wrapper -->
+
+  <!-- Modal -->
+  <div class="modal fade" id="modal-default">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Detail</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>One fine body&hellip;</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+      <!-- /.modal -->
+
+
+
+
   <footer class="main-footer">
     <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
     All rights reserved.
