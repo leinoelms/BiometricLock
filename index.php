@@ -1,4 +1,42 @@
-<?php include 'conn.php'; ?>
+<?php include 'conn.php'; 
+
+if(isset($_POST['adduser'])){
+  $sql="UPDATE locker SET `status` = 1, `userID` = :userid WHERE `id` = :locker_id";
+  $stmt= $conn->prepare($sql);
+  $stmt->bindParam(':userid', $_POST['userid']);
+  $stmt->bindParam(':locker_id', $_POST['lockerid']);
+  $stmt->execute();
+
+  $addsql = "INSERT into users (id, firstname, lastname) VALUES (:id, :fname, :lname)";
+  $addstmt = $conn->prepare($addsql);
+  $addstmt->execute([
+    ':id' => $_POST['userid'],
+    ':fname' => $_POST['firstname'],
+    ':lname' => $_POST['lastname'],
+    
+  ]);
+
+  echo '<script>alert("1 record updated")</script>';
+}
+
+if (isset($_POST['delUser'])) {
+  $id = $_POST['del_user_id'];
+
+  $sql = "DELETE FROM users where id=:userid";
+  $stmt = $conn->prepare($sql);
+  $stmt->execute([':userid' => $id]);
+
+  $removesql = "UPDATE locker SET `status` = 0, `userID` = null WHERE `id` = :locker_id";
+  $removestmt= $conn->prepare($removesql);
+  $removestmt->bindParam(':locker_id', $_POST['dellockerid']);
+  $removestmt->execute();
+  
+
+  header('location: index.php');
+} 
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,7 +301,7 @@
         
           <div class="col-md-2">
             <div class="card bg-gradient-<?php if($locker['status'] == 0){ echo 'success';} else echo 'danger' ?> collapsed-card">
-              <div class="card-header">
+              <div class="card-header" style="height: 136px;">
                 <div>
                 </div>
                   <div style="display: flex; align-items: center;">
@@ -276,7 +314,16 @@
                 <p><?php echo $locker['userID']; if($locker['userID'] == null)echo "&nbsp;&nbsp;&nbsp;"; ?></p>
 
                 <div class="card-tools">
-                  <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i>
+                  <?php 
+                  if($locker['status'] == 1){
+                    echo '<button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-plus"></i>';
+                  }
+                  else if($locker['status'] == 0){
+                    echo '<button type="button" class="btn btn-tool" data-toggle="modal" data-target="#exampleModal" onclick="addUser(', $locker['id'],')"><i class="fas fa-plus"></i>';
+                  }
+                  
+                  ?>
+                  
                   </button>
                 </div>
                 <!-- /.card-tools -->
@@ -285,23 +332,19 @@
               <!-- /.card-header -->
               <div class="card-body bg-light">
                 <?php
-                
+                if($locker['status'] == 1){
                   $userID = $locker['userID']; 
                   $sql = "SELECT * from users WHERE id='$userID'";
                   $userStmt = $conn->query($sql);
                   $user = $userStmt->fetch();
                   
-                  
-                  // $conn->prepare($userStmt);
-                  // $userStmt->execute();
-
-                  // $user = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-                  // if($userStmt->rowCount() > 0){
+                  echo '<div>';
+                  echo '<p>', $user['firstname'],  " " , $user['lastname'];
+                  echo '</div>';
+                }
                 ?>
-                <div>
-                  <p>Name: <?php echo $user['firstname']; echo "&nbsp;"; echo $user['lastname']?></p>
-                </div>
+                <button style="float: right;" type="button" class="btn btn-tool" data-toggle="modal" data-target="#delModal" onclick="deleteUser(<?php echo $user['id'] ?>, <?php echo $locker['id'] ?>,)">Remove</button>
+               
               </div>
               <!-- /.card-body -->
             </div>
@@ -330,29 +373,70 @@
   </div>
   <!-- /.content-wrapper -->
 
-  <!-- Modal -->
-  <div class="modal fade" id="modal-default">
+  <!-- Add Modal -->
+  <div class="modal fade" id="exampleModal">
         <div class="modal-dialog">
           <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title">Detail</h4>
+            <div class="modal-header bg-success">
+              <h4 class="modal-title">Add</h4>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <div class="modal-body">
-              <p>One fine body&hellip;</p>
+            <div class="modal-body" style="display: flex; justify-content: center;">
+              <form action="" method="post" style="display: flex; flex-direction: column; width: 200px;">
+                <label for="firstname">First Name</label>
+                <input type="text" name="firstname" required>
+
+                <label for="lastname">Last Name</label>
+                <input type="text" name="lastname" required>
+
+                <label for="id">User ID</label>
+                <input type="number" name="userid" required>
+
+                <input type="text" name="lockerid" id="lockerid" hidden>
+             
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Save changes</button>
+              <button  name="adduser" type="submit" class="btn btn-primary">Add</button>
             </div>
+            </form>
           </div>
           <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
     </div>
       <!-- /.modal -->
+
+
+   
+  <!-- Delete Modal -->
+  <div class="modal fade" id="delModal">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header bg-success">
+              <h4 class="modal-title">Remove User</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" style="display: flex; justify-content: center;">
+            <p>Are you sure you want to delete this record?</p>
+              <form method="post" style="display: flex; flex-direction: column; width: 200px;">
+            </div>
+            <div class="modal-footer">
+              <input type="text" name="dellockerid" id="dellockerid" hidden>
+              <input type="hidden" name="del_user_id" id="delete_user_id">
+              <button  name="delUser" type="submit" class="btn btn-primary">Remove</button>
+            </div>
+            </form>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+      <!-- /.modal -->   
 
 
 
@@ -407,5 +491,17 @@
 <script src="dist/js/demo.js"></script>
 <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
 <script src="dist/js/pages/dashboard.js"></script>
+
+<script>
+function addUser(id){
+        $('#lockerid').val(id);
+       console.log(id);
+    }
+function deleteUser(userid, lockerid){
+  $('#del_user_id').val(userid);
+  $('#dellockerid').val(lockerid);
+    console.log(userid, lockerid);
+  }
+</script>
 </body>
 </html>
