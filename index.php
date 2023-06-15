@@ -15,6 +15,14 @@ if(isset($_POST['adduser'])){
     ':lname' => $_POST['lastname'],
     
   ]);
+  date_default_timezone_set('Asia/Hong_Kong');
+  $logsql = "INSERT into logs (userID, createdAt) VALUES (:id, :date)";
+  $currentDateTime = date('Y-m-d h:i:s A');
+  $logstmt = $conn->prepare($logsql);
+  $logstmt->execute([
+    ':id' => $_POST['userid'],
+    ':date' => $currentDateTime
+  ]);
 
   echo '<script>alert("1 record updated")</script>';
 }
@@ -248,10 +256,18 @@ if (isset($_POST['delUser'])) {
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" >
           <li class="nav-item">
-              <a href="pages/gallery.html" class="nav-link">
+              <a href="index.php" class="nav-link">
                 <i class="nav-icon fa fa-home"></i>
                 <p>
-                  Home
+                  Dashboard
+                </p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="logs.php" class="nav-link">
+                <i class="nav-icon fa fa-file"></i>
+                <p>
+                  Logs
                 </p>
               </a>
             </li>
